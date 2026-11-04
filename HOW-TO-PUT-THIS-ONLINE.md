@@ -68,8 +68,11 @@ Apple has no Install button, but the icon will be correct.
 
 ## Your two links from now on
 
-- **Students:** `https://YOUR-USERNAME.github.io/speakup/`
-- **Council:** `https://YOUR-USERNAME.github.io/speakup/?page=council`
+- **Students:** `https://zohair144-droid.github.io/Speak-Up-Serene/`
+- **Council:** `https://zohair144-droid.github.io/Speak-Up-Serene/council/`
+
+The two install as separate apps with separate icons: the yellow speech bubble
+for students, the navy mountains for the council.
 
 Make a fresh QR code for the student link, or ask Claude for one.
 
@@ -77,7 +80,8 @@ Make a fresh QR code for the student link, or ask Claude for one.
 
 ## If your Apps Script link ever changes
 
-Open **index.html** on GitHub, click the pencil icon, and change this one line:
+Change it in **two** files: `index.html` and `council/index.html`.
+Click the pencil icon on each and edit this one line:
 
 ```js
 var APP_URL = "https://script.google.com/macros/s/..../exec";
