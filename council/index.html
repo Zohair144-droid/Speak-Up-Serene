@@ -23,6 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="robots" content="noindex, nofollow">
 <style>
+  :root { --bar: #ffffff; --barink: #18213a; --barline: #e2e6ee; --go: #1b2d55; --goink: #ffffff; }
   html, body { margin: 0; height: 100%; background: #f8f9fb; }
   @media (prefers-color-scheme: dark) { html, body { background: #0d1322; } }
   iframe { display: block; border: 0; width: 100%; height: 100%; }
@@ -35,6 +36,24 @@
   #load img { width: 88px; height: 88px; border-radius: 22px; }
   #load p { margin: 0; font-size: .95rem; }
   #load a { color: inherit; }
+
+  /* install bar */
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
+    display: none; align-items: center; gap: 12px;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--bar); color: var(--barink);
+    border-top: 1px solid var(--barline);
+    font-family: system-ui, -apple-system, sans-serif;
+    box-shadow: 0 -6px 18px rgba(0,0,0,.14); }
+  #bar.show { display: flex; }
+  #bar img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+  #bar .txt { flex: 1; min-width: 0; font-size: .84rem; line-height: 1.3; }
+  #bar .txt b { display: block; font-size: .95rem; }
+  #bar button { font: inherit; cursor: pointer; }
+  #go { flex: none; border: 0; border-radius: 999px; padding: 10px 18px;
+    font-weight: 700; background: var(--go); color: var(--goink); }
+  #nope { flex: none; border: 0; background: none; color: inherit;
+    opacity: .6; font-size: 1.4rem; line-height: 1; padding: 4px 8px; }
 </style>
 </head>
 <body>
@@ -43,6 +62,14 @@
   <img src="icon-192.png" alt="">
   <p>Opening the council dashboard…</p>
   <p id="slow" hidden><a id="direct" href="#">Taking too long? Tap here to open it directly.</a></p>
+</div>
+
+
+<div id="bar" role="region" aria-label="Install this app">
+  <img src="icon-192.png" alt="">
+  <p class="txt" id="bartxt"><b>Install Serene Council</b>Get it on your home screen.</p>
+  <button id="go" type="button">Install</button>
+  <button id="nope" type="button" aria-label="Not now">&times;</button>
 </div>
 
 <iframe id="app" title="Serene Council" allow="clipboard-write" hidden></iframe>
@@ -63,6 +90,55 @@
   setTimeout(function () {
     if (f.hidden) document.getElementById('slow').hidden = false;
   }, 6000);
+
+
+  // ---- real install prompt ----
+  var bar = document.getElementById('bar'), go = document.getElementById('go'),
+      txt = document.getElementById('bartxt'), deferred = null;
+  var KEY = 'install-dismissed';
+  var standalone = (navigator.standalone === true) ||
+                   (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  var dismissed = false;
+  try { dismissed = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var iosSafari = isIOS && /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua);
+
+  function showBar() { if (!standalone && !dismissed) bar.classList.add('show'); }
+  function hideBar() { bar.classList.remove('show'); }
+
+  document.getElementById('nope').addEventListener('click', function () {
+    hideBar();
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+  });
+
+  // Android / desktop Chrome: a genuine one-tap install
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferred = e;
+    showBar();
+  });
+
+  go.addEventListener('click', function () {
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.then(function () { deferred = null; hideBar(); });
+    } else if (isIOS) {
+      txt.innerHTML = '<b>Tap Share, then "Add to Home Screen"</b>' +
+        (iosSafari ? 'The Share button is at the bottom of Safari.'
+                   : 'Open this page in Safari first - only Safari can do this on iPhone.');
+      go.style.display = 'none';
+    }
+  });
+
+  // iPhone never fires beforeinstallprompt, so offer the Safari route
+  if (isIOS) { go.textContent = 'How'; setTimeout(showBar, 2500); }
+
+  window.addEventListener('appinstalled', function () {
+    hideBar();
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+  });
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
