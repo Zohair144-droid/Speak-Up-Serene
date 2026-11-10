@@ -3,7 +3,7 @@
    It caches only the shell (icons and this page), never the suggestions themselves,
    so students always see live data from Google. */
 
-const CACHE = 'speakup-shell-v1';
+const CACHE = 'speakup-shell-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest',
                './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
